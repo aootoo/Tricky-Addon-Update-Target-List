@@ -13,7 +13,7 @@ let availableLanguages = ['en-US'];
  * Detect user's default language
  * @returns {Promise<string>} - Detected language code
  */
-export async function detectUserLanguage() {
+async function detectUserLanguage() {
     const userLang = navigator.language || navigator.userLanguage;
     const langCode = userLang.split('-')[0];
 
@@ -22,7 +22,7 @@ export async function detectUserLanguage() {
         const availableResponse = await fetch('locales/available-lang.json');
         const availableData = await availableResponse.json();
         availableLanguages = availableData.languages;
-        generateLanguageMenu();
+        await generateLanguageMenu();
 
         // Fetch preferred language
         const prefered_language_code = localStorage.getItem('trickyAddonLanguage');

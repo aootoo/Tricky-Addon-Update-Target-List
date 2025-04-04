@@ -1,12 +1,11 @@
 import { appListContainer, fetchAppList } from './applist.js';
 import { loadTranslations, setupLanguageMenu, translations } from './language.js';
-import { aospkb, setupSystemAppMenu } from './menu_option.js';
+import { setupSystemAppMenu } from './menu_option.js';
 import { searchMenuContainer, searchInput, clearBtn, setupMenuToggle } from './search_menu.js';
 import { updateCheck } from './update.js';
 import { securityPatch } from './security_patch.js';
 
 // Header Elements
-const headerBlock = document.querySelector('.header-block');
 const title = document.querySelector('.header');
 export const noConnection = document.querySelector('.no-connection');
 
@@ -45,7 +44,6 @@ async function getModuleVersion() {
         moduleVersion.textContent = version;
     } catch (error) {
         console.error("Failed to read version from module.prop:", error);
-        updateVersion("Error");
     }
 }
 
@@ -86,12 +84,7 @@ async function checkTrickyStoreVersion() {
             TS_version=$(grep "versionCode=" "/data/adb/modules/tricky_store/module.prop" | cut -d'=' -f2)
             [ "$TS_version" -ge 158 ] || echo "NO"
         `);
-        if (version.trim() !== "NO") {
-            console.log("Tricky Store version is 158 or higher, displaying element.");
-            securityPatchElement.style.display = "flex";
-        } else {
-            console.log("Tricky Store version is below 158, leaving security patch element hidden.");
-        }
+        if (version.trim() !== "NO") securityPatchElement.style.display = "flex";
     } catch (error) {
         toast("Failed to check Tricky Store version!");
         console.error("Error while checking Tricky Store version:", error);
@@ -103,12 +96,7 @@ async function checkMagisk() {
     const selectDenylistElement = document.getElementById('select-denylist');
     try {
         const magiskEnv = await execCommand(`command -v magisk >/dev/null 2>&1 || echo "NO"`);
-        if (magiskEnv.trim() !== "NO") {
-            console.log("Denylist conditions met, displaying element.");
-            selectDenylistElement.style.display = "flex";
-        } else {
-            console.log("not running on Magisk, leaving denylist element hidden.");
-        }
+        if (magiskEnv.trim() !== "NO") selectDenylistElement.style.display = "flex";
     } catch (error) {
         toast("Failed to check Magisk!");
         console.error("Error while checking denylist conditions:", error);
@@ -161,7 +149,6 @@ document.getElementById("save").addEventListener("click", async () => {
         });
         const updatedTargetContent = modifiedAppsList.join("\n");
         await execCommand(`echo "${updatedTargetContent}" | sort -u > /data/adb/tricky_store/target.txt`);
-        console.log("target.txt updated successfully.");
         showPrompt("prompt.saved_target");
         for (const app of appsWithExclamation) {
             await execCommand(`sed -i 's/^${app}$/${app}!/' /data/adb/tricky_store/target.txt`);
@@ -169,7 +156,6 @@ document.getElementById("save").addEventListener("click", async () => {
         for (const app of appsWithQuestion) {
             await execCommand(`sed -i 's/^${app}$/${app}?/' /data/adb/tricky_store/target.txt`);
         }
-        console.log("App names modified in target.txt.");
     } catch (error) {
         console.error("Failed to update target.txt:", error);
         showPrompt("prompt.save_error", false);
@@ -211,7 +197,6 @@ document.querySelector(".uninstall-container").addEventListener("click", () => {
 async function uninstallWebUI() {
     try {
         await execCommand(`sh ${basePath}/common/get_extra.sh --uninstall`);
-        console.log("uninstall script executed successfully.");
         showPrompt("prompt.uninstall_prompt");
     } catch (error) {
         console.error("Failed to execute uninstall command:", error);
@@ -222,21 +207,18 @@ async function uninstallWebUI() {
 // Function to check if running in MMRL
 async function checkMMRL() {
     if (typeof ksu !== 'undefined' && ksu.mmrl) {
-        // Adjust elements position for MMRL
-        headerBlock.style.display = 'block';
-
         // Set status bars theme based on device theme
         try {
             $tricky_store.setLightStatusBars(!window.matchMedia('(prefers-color-scheme: dark)').matches)
         } catch (error) {
-            console.log("Error setting status bars theme:", error)
+            console.error("Error setting status bars theme:", error)
         }
 
         // Request API permission, supported version: 33045+
         try {
             $tricky_store.requestAdvancedKernelSUAPI();
         } catch (error) {
-            console.log("Error requesting API:", error);
+            console.error("Error requesting API:", error);
         }
 
         // Check permissions
@@ -328,12 +310,10 @@ window.addEventListener('scroll', () => {
     }, 200);
     if (isRefreshing) return;
     if (window.scrollY > lastScrollY && window.scrollY > scrollThreshold) {
-        title.style.transform = 'translateY(-80px)';
-        headerBlock.style.transform = 'translateY(-80px)';
+        title.style.transform = 'translateY(-100%)';
         searchMenuContainer.style.transform = 'translateY(-40px)';
         hideFloatingBtn();
     } else if (window.scrollY < lastScrollY) {
-        headerBlock.style.transform = 'translateY(0)';
         title.style.transform = 'translateY(0)';
         searchMenuContainer.style.transform = 'translateY(0)';
         hideFloatingBtn(false);
@@ -343,7 +323,7 @@ window.addEventListener('scroll', () => {
 
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
-    loadTranslations();
+    await loadTranslations();
     await checkMMRL();
     if (!MMRL_API) return;
     await getBasePath();
@@ -362,7 +342,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     floatingBtn.style.display = 'block';
     hideFloatingBtn(false);
     document.getElementById("refresh").addEventListener("click", refreshAppList);
-    document.getElementById("aospkb").addEventListener("click", aospkb);
     document.querySelector('.uninstall-container').classList.remove('hidden-uninstall');
 });
 
