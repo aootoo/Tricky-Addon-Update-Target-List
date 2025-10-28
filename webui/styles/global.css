@@ -56,7 +56,9 @@ body[unresolved] {
 
 .prompt-container {
     position: fixed;
-    bottom: calc(var(--bottom-inset) + 96px);
+    margin-bottom: calc(var(--bottom-inset) + 96px);
+    background-color: transparent;
+    border: none;
     left: 0;
     width: 100vw;
     display: flex;
