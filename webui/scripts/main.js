@@ -383,3 +383,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     monitorDialogsAndLockScroll();
     document.getElementById("refresh").onclick = refreshAppList;
 });
+
+// Overwrite default dialog animation
+document.querySelectorAll('md-dialog').forEach(dialog => {
+    const originalGetOpenAnimation = dialog.getOpenAnimation;
+    const originalGetCloseAnimation = dialog.getCloseAnimation;
+
+    dialog.getOpenAnimation = () => {
+        const defaultAnim = originalGetOpenAnimation ? originalGetOpenAnimation.call(dialog) : {};
+        const customAnim = {};
+        Object.keys(defaultAnim).forEach(key => customAnim[key] = defaultAnim[key]);
+
+        customAnim.dialog = [
+            [
+                [{ opacity: 0, transform: 'translateY(50px)' }, { opacity: 1, transform: 'translateY(0)' }],
+                { duration: 300, easing: 'ease' }
+            ]
+        ];
+        customAnim.scrim = [
+            [
+                [{'opacity': 0}, {'opacity': 0.32}],
+                {duration: 300, easing: 'linear'},
+            ],
+        ];
+        customAnim.container = [];
+
+        return customAnim;
+    };
+
+    dialog.getCloseAnimation = () => {
+        const defaultAnim = originalGetCloseAnimation ? originalGetCloseAnimation.call(dialog) : {};
+        const customAnim = {};
+        Object.keys(defaultAnim).forEach(key => customAnim[key] = defaultAnim[key]);
+
+        customAnim.dialog = [
+            [
+                [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-50px)' }],
+                { duration: 300, easing: 'ease' }
+            ]
+        ];
+        customAnim.scrim = [
+            [
+                [{'opacity': 0.32}, {'opacity': 0}],
+                {duration: 300, easing: 'linear'},
+            ],
+        ];
+        customAnim.container = [];
+
+        return customAnim;
+    };
+});
